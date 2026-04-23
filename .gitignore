@@ -45,6 +45,9 @@ next-env.d.ts
 playwright-report/
 test-results/
 
+# Lighthouse reports (CI artifact 로 업로드됨)
+lighthouse-reports/
+
 # Claude Code hook cache (auto-simplify markers)
 .claude/cache/
 

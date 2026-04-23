@@ -15,4 +15,15 @@ export const CONFIG = {
 
   // audit-components.mjs 에서 story/test 검사 예외. 예외 컴포넌트가 생기면 이름만 추가.
   AUDIT_EXCLUDE: [],
+
+  // 실험 22 — 번들 게이트 임계값 (gzip 기준 bytes).
+  // Next.js 16 + React 19 + TanStack Query 5 실측 기반 (실측 + ~20% 회귀 헤드룸).
+  // 분류: build-manifest.json 의 rootMainFiles/polyfillFiles → framework, 나머지 → app.
+  // Turbopack 은 vendor/pages 를 공유 청크로 합치므로 app 카테고리로 통합한다.
+  BUNDLE_LIMITS: {
+    framework:   200_000,  // Next.js 런타임 청크 (실측 167 KB + 20%)
+    app:         400_000,  // vendor + 앱 코드 공유 청크 (실측 318 KB + 25%)
+    total:       580_000,  // 전체 합산 (실측 485 KB + 20%)
+    singleChunk: 110_000,  // 단일 청크 최대값 (실측 85 KB + ~30%)
+  },
 };
