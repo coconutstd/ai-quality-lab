@@ -1,39 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchPosts, deletePost } from '@/lib/api'
-import { Post } from '@/lib/schemas'
 import { t } from '@/lib/i18n'
-import { track } from '@/lib/analytics'
+import { usePosts } from '@/lib/hooks/usePosts'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import Link from 'next/link'
+import type { Post } from '@/lib/schemas'
 
 export default function PostsPage() {
-  const queryClient = useQueryClient()
-  const [pendingDelete, setPendingDelete] = useState<Post | null>(null)
-
-  useEffect(() => {
-    track('post.list.view', {})
-  }, [])
-
-  const postsQuery = useQuery({
-    queryKey: ['posts'],
-    queryFn: fetchPosts,
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: deletePost,
-    onSuccess: (_data, postId) => {
-      track('post.delete.success', { postId })
-      queryClient.invalidateQueries({ queryKey: ['posts'] })
-      setPendingDelete(null)
-    },
-    onError: (err: Error, postId) => {
-      track('post.delete.failure', { postId, reason: err.message })
-      setPendingDelete(null)
-    },
-  })
+  const {
+    postsQuery,
+    pendingDelete,
+    requestDelete,
+    confirmDelete,
+    cancelDelete,
+    isDeleting,
+    isDeletingPost,
+    deleteError,
+  } = usePosts()
 
   return (
     <div className="page-container py-14 md:py-20">
@@ -77,17 +60,16 @@ export default function PostsPage() {
           </div>
         )}
 
-        {deleteMutation.isError && (
+        {deleteError && (
           <div role="alert" className="inline-error mb-6">
-            {t('post.list.deleteError', { message: deleteMutation.error.message })}
+            {t('post.list.deleteError', { message: deleteError.message })}
           </div>
         )}
 
         {postsQuery.data && (
           <ul className="divide-y divide-[color:var(--rule-strong)] border-y border-[color:var(--rule-strong)]">
             {postsQuery.data.map((post: Post, idx) => {
-              const isDeleting =
-                deleteMutation.isPending && deleteMutation.variables === post.id
+              const isRowDeleting = isDeletingPost(post.id)
               return (
                 <li
                   key={post.id}
@@ -107,11 +89,8 @@ export default function PostsPage() {
                   </Link>
                   <button
                     type="button"
-                    onClick={() => {
-                      track('post.delete.attempt', { postId: post.id })
-                      setPendingDelete(post)
-                    }}
-                    disabled={isDeleting}
+                    onClick={() => requestDelete(post)}
+                    disabled={isRowDeleting}
                     aria-label={t('post.list.deleteAria', { title: post.title })}
                     className="btn-link btn-link-danger disabled:opacity-50"
                   >
@@ -139,12 +118,10 @@ export default function PostsPage() {
             : ''
         }
         confirmLabel={t('post.list.deleteButton')}
-        isConfirming={deleteMutation.isPending}
+        isConfirming={isDeleting}
         analyticsId="post-list-delete"
-        onConfirm={() => {
-          if (pendingDelete) deleteMutation.mutate(pendingDelete.id)
-        }}
-        onCancel={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
       />
     </div>
   )
