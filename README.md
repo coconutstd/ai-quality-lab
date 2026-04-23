@@ -42,7 +42,7 @@ AI 코딩 도구가 속도 비용을 ~0 으로 만들었다.
 
 ## 계층별 자동 방어 지도
 
-실험 12·13·14·15 가 함께 만드는 **다층 방어**:
+실험 12·13·14·15·17·18 이 함께 만드는 **다층 방어**:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -78,6 +78,36 @@ AI 코딩 도구가 속도 비용을 ~0 으로 만들었다.
 │   │        → check:rules (SSOT drift) → test:guard (17 unit)         │  │
 │   │ CI 전용 추가: CodeRabbit review (시크릿 옵트인)                   │  │
 │   └──────────────────────────────────────────────────────────────────┘  │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │ pass
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 통합/E2E 계층 (실제 앱 부팅 검증)                         ← 실험 17      │
+│   Playwright     (playwright.config.ts + e2e/posts.spec.ts)            │
+│   CI job         (.github/workflows/pr-gate.yml :: e2e)                 │
+│   ┌──────────────────────────────────────────────────────────────────┐  │
+│   │ 실제 Next.js dev 서버 + 실제 브라우저 + 실제 라우트/핸들러.       │  │
+│   │ unit mock 이 감추는 결함(라우트 부재, cross-origin, 포커스)      │  │
+│   │ 을 감지. needs: gate 직렬로 단위 피드백 속도 보존.                │  │
+│   └──────────────────────────────────────────────────────────────────┘  │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │ pass
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 리뷰 계층 (4 트리거 경로)                                ← 실험 18      │
+│                                                                         │
+│   1) PR / CI      .github/workflows/pr-gate.yml :: review               │
+│                   → CodeRabbit (시크릿 + 과금, PR 한정)                 │
+│   2) 로컬 심층    npm run pr:review                                     │
+│                   → CodeRabbit 로컬 (과금, 현 브랜치)                   │
+│   3) 로컬 무가격  npm run review:local                                  │
+│                   → 변경분을 프롬프트 패키지로 stdout 덤프              │
+│                   → Claude Code 서브에이전트/임의 LLM/인간에 전달       │
+│   4) 세션 내 AI   서브에이전트 feature-dev:code-reviewer 호출           │
+│                   → 무료, 세션 내부 자발적 트리거                       │
+│                                                                         │
+│   → 리뷰가 "PR 이 있어야만 돈다" 는 암묵적 전제를 깬다. 3·4번으로      │
+│     PR 이전에도 코드 리뷰가 가능하고, 1·2번으로 최종 방어선 유지.       │
 └────────────────────────────────────┬────────────────────────────────────┘
                                      │ pass
                                      ▼
@@ -166,13 +196,15 @@ ai-quality-lab/
 ├── components/              # 재사용 컴포넌트 (SafeHtml, CommentList, Alert)
 ├── lib/                     # 도메인 유틸 (api, auth, http, sanitize, schemas, i18n, analytics)
 ├── rules/                   # 원본 규칙 체크리스트 (인간 참조용 장문 문서)
-├── results/                 # 실험 01~15 결과 기록 (정량·정성)
+├── results/                 # 실험 01~18 결과 기록 (정량·정성)
+├── e2e/                     # ← 실험 17: Playwright E2E 스펙
+├── playwright.config.ts     # ← 실험 17: webServer + chromium
 ├── starter/                 # ← 실험 15: 다른 프로젝트로 이식 가능한 번들
 ├── .claude/
 │   ├── settings.json        # PreToolUse + SessionEnd hook 등록
 │   ├── hooks/               # guard-always-layer / audit-components / test-guard
 │   ├── rules/               # ← SSOT: always-layer.mjs + 프로젝트 config.mjs
-│   ├── scripts/             # sync-rules.mjs (SSOT → CLAUDE.md 생성기)
+│   ├── scripts/             # sync-rules.mjs + review-local.mjs (실험 18)
 │   └── skills/              # new-component (컴포넌트 스캐폴드 Skill)
 ├── .githooks/pre-push       # 로컬 push 직전 pr:gate
 ├── .github/workflows/       # CI 게이트 + CR 리뷰
@@ -195,6 +227,9 @@ npm run sync:rules        # SSOT → CLAUDE.md 재생성
 npm run check:rules       # drift 검사 (pr:gate 용)
 npm run test:guard        # guard hook 단위 테스트 17 케이스
 npm run pr:gate           # 위 6개 순차 실행 (pre-push / CI 공통)
+npm run e2e               # ← 실험 17: Playwright E2E (dev server 자동 기동)
+npm run review:local      # ← 실험 18: 변경분을 리뷰 프롬프트 패키지로 stdout 덤프
+npm run pr:review         # CodeRabbit 로컬 (과금, 현 브랜치)
 ```
 
 실험 재현: 각 `rules/0N-*.md` 를 컨텍스트로 AI에게 제시 → 적용 요청 → `results/0N-*.md` 체크리스트와 대조.

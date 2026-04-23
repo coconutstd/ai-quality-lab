@@ -4,6 +4,7 @@ vi.mock('../http', () => ({
   http: {
     get: vi.fn(),
     post: vi.fn(),
+    put: vi.fn(),
     delete: vi.fn(),
   },
 }))
@@ -13,6 +14,7 @@ import {
   fetchPost,
   fetchPosts,
   createPost,
+  updatePost,
   deletePost,
   fetchComments,
   createComment,
@@ -20,6 +22,7 @@ import {
 
 const mockedGet = vi.mocked(http.get)
 const mockedPost = vi.mocked(http.post)
+const mockedPut = vi.mocked(http.put)
 const mockedDelete = vi.mocked(http.delete)
 
 beforeEach(() => {
@@ -64,6 +67,23 @@ describe('createPost', () => {
     mockedPost.mockResolvedValueOnce({ data: validPost })
     await createPost('t', 'c')
     expect(mockedPost).toHaveBeenCalledWith('/posts', { title: 't', content: 'c' })
+  })
+})
+
+describe('updatePost', () => {
+  it('sends PUT with body and parses response', async () => {
+    mockedPut.mockResolvedValueOnce({ data: validPost })
+    await expect(
+      updatePost(1, { title: 't', content: 'c' }),
+    ).resolves.toEqual(validPost)
+    expect(mockedPut).toHaveBeenCalledWith('/posts/1', { title: 't', content: 'c' })
+  })
+
+  it('throws when response shape is wrong', async () => {
+    mockedPut.mockResolvedValueOnce({ data: { wrong: true } })
+    await expect(
+      updatePost(1, { title: 't', content: 'c' }),
+    ).rejects.toThrow()
   })
 })
 

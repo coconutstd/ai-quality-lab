@@ -22,6 +22,15 @@ export interface EventMap {
   'comment.create.failure': { postId: number; reason: string }
 
   'alert.dismiss.click': { id: string; variant: 'info' | 'success' | 'warning' | 'error' }
+
+  'confirm.dialog.open': { id: string; variant: 'default' | 'danger' }
+  'confirm.dialog.confirm': { id: string; variant: 'default' | 'danger' }
+  'confirm.dialog.cancel': { id: string; variant: 'default' | 'danger'; via: 'button' | 'escape' }
+
+  'post.update.attempt': { postId: number }
+  'post.update.success': { postId: number }
+  'post.update.failure': { postId: number; reason: string }
+  'post.edit.view': { postId: number }
 }
 
 export type EventName = keyof EventMap
