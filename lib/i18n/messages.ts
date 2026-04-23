@@ -50,6 +50,28 @@ export const ko = {
   // alert (shared component)
   'alert.button.dismiss': '닫기',
 
+  // confirm dialog (shared component)
+  'confirm.button.confirm': '확인',
+  'confirm.button.cancel': '취소',
+  'confirm.default.title': '확인이 필요합니다',
+  'confirm.default.message': '이 작업을 진행하시겠습니까?',
+
+  // post edit
+  'post.edit.title': '글 수정',
+  'post.edit.button.submit': '수정 저장',
+  'post.edit.button.submitting': '저장 중...',
+  'post.edit.error.titleRequired': '제목을 입력하세요',
+  'post.edit.error.titleTooLong': '제목은 120자 이하여야 합니다',
+  'post.edit.error.contentRequired': '본문을 입력하세요',
+
+  // post detail — edit/delete entry points
+  'post.detail.editLink': '수정',
+  'post.detail.deleteButton': '삭제',
+  'post.detail.deleteConfirmTitle': '게시글 삭제',
+  'post.detail.deleteConfirmMessage': '"{title}" 글을 삭제합니다. 되돌릴 수 없습니다.',
+  'post.list.deleteConfirmTitle': '게시글 삭제',
+  'post.list.deleteConfirmMessage': '"{title}" 글을 삭제합니다. 되돌릴 수 없습니다.',
+
   // network / auth
   'http.serverError': '서버 오류: {status}',
   'http.networkError': '네트워크에 연결할 수 없습니다',
@@ -100,6 +122,25 @@ export const en: Record<keyof typeof ko, string> = {
   'comment.error.bodyTooLong': 'Comment must be 1000 characters or fewer',
 
   'alert.button.dismiss': 'Dismiss',
+
+  'confirm.button.confirm': 'Confirm',
+  'confirm.button.cancel': 'Cancel',
+  'confirm.default.title': 'Please confirm',
+  'confirm.default.message': 'Do you want to proceed?',
+
+  'post.edit.title': 'Edit post',
+  'post.edit.button.submit': 'Save changes',
+  'post.edit.button.submitting': 'Saving...',
+  'post.edit.error.titleRequired': 'Title is required',
+  'post.edit.error.titleTooLong': 'Title must be 120 characters or fewer',
+  'post.edit.error.contentRequired': 'Content is required',
+
+  'post.detail.editLink': 'Edit',
+  'post.detail.deleteButton': 'Delete',
+  'post.detail.deleteConfirmTitle': 'Delete post',
+  'post.detail.deleteConfirmMessage': 'Delete "{title}". This cannot be undone.',
+  'post.list.deleteConfirmTitle': 'Delete post',
+  'post.list.deleteConfirmMessage': 'Delete "{title}". This cannot be undone.',
 
   'http.serverError': 'Server error: {status}',
   'http.networkError': 'Cannot connect to network',

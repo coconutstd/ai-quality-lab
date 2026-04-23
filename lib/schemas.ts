@@ -46,6 +46,14 @@ export const CreatePostInputSchema = z.object({
   content: z.string().min(1, t('post.new.error.contentRequired')),
 })
 
+export const UpdatePostInputSchema = z.object({
+  title: z
+    .string()
+    .min(1, t('post.edit.error.titleRequired'))
+    .max(120, t('post.edit.error.titleTooLong')),
+  content: z.string().min(1, t('post.edit.error.contentRequired')),
+})
+
 export const CreateCommentInputSchema = z.object({
   body: z
     .string()
@@ -59,4 +67,5 @@ export type User = z.infer<typeof UserSchema>
 export type LoginResult = z.infer<typeof LoginResultSchema>
 export type LoginInput = z.infer<typeof LoginInputSchema>
 export type CreatePostInput = z.infer<typeof CreatePostInputSchema>
+export type UpdatePostInput = z.infer<typeof UpdatePostInputSchema>
 export type CreateCommentInput = z.infer<typeof CreateCommentInputSchema>

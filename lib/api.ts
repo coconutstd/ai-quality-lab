@@ -23,6 +23,14 @@ export async function createPost(title: string, content: string): Promise<Post> 
   return PostSchema.parse(data)
 }
 
+export async function updatePost(
+  id: number,
+  input: { title: string; content: string },
+): Promise<Post> {
+  const { data } = await http.put<unknown>(`/posts/${id}`, input)
+  return PostSchema.parse(data)
+}
+
 export async function deletePost(id: number): Promise<void> {
   await http.delete(`/posts/${id}`)
 }
