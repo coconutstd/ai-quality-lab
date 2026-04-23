@@ -18,6 +18,29 @@ jobs:
       - run: npm ci
       - run: npm run pr:gate
 
+  e2e:
+    # 실험 17 — 통합/E2E 계층. 단위 테스트가 놓치는 결함(예: 라우트 부재, 실제 브라우저 상호작용)을 포착.
+    runs-on: ubuntu-latest
+    needs: gate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright E2E
+        run: npm run ci:e2e
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
   review:
     # CodeRabbit AI 사전 리뷰 — PR에만 실행. push(main)에선 스킵.
     if: github.event_name == 'pull_request'
