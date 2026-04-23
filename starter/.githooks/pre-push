@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# 실험 14 — PR 계층 자동 게이트
+#
+# push 직전에 통합 게이트(lint + typecheck + test + audit-components)를 돌린다.
+# 하나라도 실패하면 push는 중단. CR(코드 리뷰)은 CI에서 별도로 실행.
+#
+# 활성화 (저장소 clone 직후 1회):
+#   git config core.hooksPath .githooks
+#
+# 긴급 우회 (예외 승인된 경우만):
+#   git push --no-verify
+
+set -e
+
+echo "→ PR 게이트: lint + typecheck + test + audit-components"
+npm run pr:gate
+echo "✓ PR 게이트 통과"

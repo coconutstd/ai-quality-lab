@@ -1,0 +1,43 @@
+name: PR gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run pr:gate
+
+  review:
+    # CodeRabbit AI 사전 리뷰 — PR에만 실행. push(main)에선 스킵.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    needs: gate
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: CodeRabbit review
+        env:
+          CODERABBIT_API_KEY: ${{ secrets.CODERABBIT_API_KEY }}
+        run: |
+          if [ -z "$CODERABBIT_API_KEY" ]; then
+            echo "CODERABBIT_API_KEY 시크릿 미설정 — 리뷰 스텝 스킵"
+            exit 0
+          fi
+          npx coderabbit review --agent -t all
