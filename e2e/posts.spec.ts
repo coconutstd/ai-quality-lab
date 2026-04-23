@@ -7,18 +7,19 @@ test.beforeEach(async ({ request }) => {
 
 test('posts 목록 진입 시 시드된 3건이 404 없이 렌더된다 — 단위 테스트가 놓친 실패 감지', async ({ page }) => {
   await page.goto('/posts')
-  await expect(page.getByRole('heading', { name: '게시글 목록' })).toBeVisible()
-  await expect(page.getByRole('link', { name: '첫 번째 게시글' })).toBeVisible()
-  await expect(page.getByRole('link', { name: '하네스 관측 일지' })).toBeVisible()
-  await expect(page.getByRole('link', { name: '파괴적 작업에는 확인을' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /The Posts, collected\./ })).toBeVisible()
+  await expect(page.getByRole('link', { name: /첫 번째 게시글/ })).toBeVisible()
+  await expect(page.getByRole('link', { name: /하네스 관측 일지/ })).toBeVisible()
+  await expect(page.getByRole('link', { name: /파괴적 작업에는 확인을/ })).toBeVisible()
 })
 
 test('목록에서 상세로 진입 시 SafeHtml 본문과 댓글이 로드된다', async ({ page }) => {
   await page.goto('/posts')
-  await page.getByRole('link', { name: '첫 번째 게시글' }).click()
+  await page.getByRole('link', { name: /첫 번째 게시글/ }).click()
   await expect(page).toHaveURL(/\/posts\/1$/)
   await expect(page.getByRole('heading', { name: '첫 번째 게시글' })).toBeVisible()
-  await expect(page.getByText('작성자: alice')).toBeVisible()
+  await expect(page.getByText('Author')).toBeVisible()
+  await expect(page.getByText('alice', { exact: true })).toBeVisible()
   await expect(page.getByText('반갑습니다!')).toBeVisible()
   await expect(page.getByText('첫 댓글 테스트.')).toBeVisible()
 })
@@ -27,7 +28,7 @@ test('상세에서 편집 → 저장 → 변경이 목록에도 반영된다', a
   await page.goto('/posts/2')
   await page.getByRole('link', { name: '수정' }).click()
   await expect(page).toHaveURL(/\/posts\/2\/edit$/)
-  await expect(page.getByRole('heading', { name: '글 수정' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Press revisions\./ })).toBeVisible()
 
   const newTitle = `E2E 수정된 제목 ${Date.now()}`
   const titleInput = page.getByLabel('제목')

@@ -25,11 +25,6 @@ interface ConfirmDialogProps {
   onCancel: () => void
 }
 
-const VARIANT_CONFIRM_COLOR: Record<ConfirmVariant, string> = {
-  default: '#0b5394',
-  danger: '#b00020',
-}
-
 export function ConfirmDialog({
   open,
   title,
@@ -87,19 +82,14 @@ export function ConfirmDialog({
     onConfirm()
   }
 
+  const isDanger = variant === 'danger'
+
   return (
     <div
       role="presentation"
       onKeyDown={handleKeyDown}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.4)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
+      className="fixed inset-0 z-[1000] flex items-center justify-center px-6 bg-[color:var(--overlay)]"
+      style={{ animation: 'lab-overlay-in 180ms ease-out both' }}
     >
       <div
         role="dialog"
@@ -107,54 +97,56 @@ export function ConfirmDialog({
         aria-labelledby={titleId}
         aria-describedby={descId}
         aria-busy={isConfirming}
+        className="w-full max-w-[480px] bg-[color:var(--paper)] border border-[color:var(--ink)] relative"
         style={{
-          background: 'white',
-          color: 'black',
-          borderRadius: 8,
-          padding: '1.25rem 1.5rem',
-          minWidth: 320,
-          maxWidth: 480,
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
+          boxShadow: '10px 10px 0 0 var(--ink)',
+          animation: 'lab-dialog-in 220ms cubic-bezier(0.2, 0.7, 0.2, 1) both',
         }}
       >
-        <h2 id={titleId} style={{ margin: 0, marginBottom: 8, fontSize: '1.125rem' }}>
-          {resolvedTitle}
-        </h2>
-        <div id={descId} style={{ marginBottom: 16, color: '#333' }}>
-          {resolvedMessage}
+        <div className="absolute top-0 left-6 right-6 flex justify-between text-[10px] font-mono tracking-[0.2em] uppercase text-[color:var(--meta)] -translate-y-1/2">
+          <span className="bg-[color:var(--paper)] px-2" style={{ color: isDanger ? 'var(--danger)' : 'var(--ink)' }}>
+            {isDanger ? '⚠ Caution' : 'Confirm'}
+          </span>
+          <span className="bg-[color:var(--paper)] px-2">Modal · 01</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button
-            type="button"
-            onClick={handleCancel}
-            disabled={isConfirming}
-            style={{
-              padding: '0.5rem 1rem',
-              border: '1px solid #ccc',
-              background: 'white',
-              borderRadius: 4,
-              cursor: isConfirming ? 'not-allowed' : 'pointer',
-            }}
+
+        <div className="px-7 pt-8 pb-6">
+          <h2
+            id={titleId}
+            className="display text-[26px] leading-[1.1]"
+            style={{ color: isDanger ? 'var(--danger)' : 'var(--ink)' }}
           >
-            {resolvedCancel}
-          </button>
-          <button
-            ref={confirmBtnRef}
-            type="button"
-            onClick={handleConfirm}
-            disabled={isConfirming}
-            aria-busy={isConfirming}
-            style={{
-              padding: '0.5rem 1rem',
-              border: 0,
-              background: VARIANT_CONFIRM_COLOR[variant],
-              color: 'white',
-              borderRadius: 4,
-              cursor: isConfirming ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {resolvedConfirm}
-          </button>
+            {resolvedTitle}
+          </h2>
+          <div id={descId} className="mt-3 text-[14.5px] leading-relaxed text-[color:var(--ink-soft)]">
+            {resolvedMessage}
+          </div>
+        </div>
+
+        <div className="border-t border-[color:var(--rule-strong)] px-6 py-4 flex items-center justify-between gap-3 bg-[color:var(--paper-2)]/40">
+          <span className="font-mono text-[10.5px] tracking-[0.18em] uppercase text-[color:var(--meta)]">
+            {isConfirming ? 'Processing…' : 'Awaiting decision'}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={isConfirming}
+              className="btn btn-ghost !py-2.5 !px-4"
+            >
+              {resolvedCancel}
+            </button>
+            <button
+              ref={confirmBtnRef}
+              type="button"
+              onClick={handleConfirm}
+              disabled={isConfirming}
+              aria-busy={isConfirming}
+              className={`btn !py-2.5 !px-4 ${isDanger ? 'btn-danger' : ''}`}
+            >
+              {resolvedConfirm}
+            </button>
+          </div>
         </div>
       </div>
     </div>

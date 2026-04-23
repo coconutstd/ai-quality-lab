@@ -15,11 +15,13 @@ interface AlertProps extends Omit<HTMLAttributes<HTMLDivElement>, 'role' | 'chil
   analyticsId?: string
 }
 
-const VARIANT_COLORS: Record<AlertVariant, string> = {
-  info: '#0b5394',
-  success: '#137333',
-  warning: '#b06000',
-  error: '#b00020',
+// Editorial palette — each variant uses a bar on the left + tinted paper background.
+// Kept as CSS custom properties rather than Tailwind arbitrary values to stay legible.
+const VARIANT_STYLES: Record<AlertVariant, { accent: string; label: string }> = {
+  info: { accent: 'var(--ink)', label: 'Note' },
+  success: { accent: 'var(--moss)', label: 'OK' },
+  warning: { accent: 'var(--ochre)', label: 'Warn' },
+  error: { accent: 'var(--danger)', label: 'Error' },
 }
 
 export function Alert({
@@ -29,10 +31,12 @@ export function Alert({
   dismissible = false,
   onDismiss,
   analyticsId,
+  className,
   ...rest
 }: AlertProps) {
   const titleId = useId()
   const bodyId = useId()
+  const { accent, label } = VARIANT_STYLES[variant]
 
   const handleDismiss = () => {
     if (analyticsId) {
@@ -46,39 +50,44 @@ export function Alert({
       role="alert"
       aria-labelledby={title ? titleId : undefined}
       aria-describedby={bodyId}
+      className={[
+        'relative flex items-start justify-between gap-4 pl-5 pr-4 py-3.5',
+        'bg-[color:var(--paper-2)]/60',
+        className ?? '',
+      ].join(' ')}
       style={{
-        border: `1px solid ${VARIANT_COLORS[variant]}`,
-        color: VARIANT_COLORS[variant],
-        padding: '0.75rem 1rem',
-        borderRadius: 4,
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        gap: '1rem',
+        borderLeft: `3px solid ${accent}`,
+        color: 'var(--ink)',
       }}
       {...rest}
     >
-      <div>
+      <span
+        aria-hidden
+        className="absolute -top-0 left-5 -translate-y-1/2 bg-[color:var(--paper)] px-1.5 font-mono text-[10px] tracking-[0.18em] uppercase"
+        style={{ color: accent }}
+      >
+        {label}
+      </span>
+      <div className="flex-1 min-w-0 pt-1">
         {title && (
-          <strong id={titleId} style={{ display: 'block', marginBottom: 4 }}>
+          <strong
+            id={titleId}
+            className="block font-mono text-[11.5px] tracking-[0.14em] uppercase mb-1"
+            style={{ color: accent }}
+          >
             {title}
           </strong>
         )}
-        <span id={bodyId}>{children}</span>
+        <span id={bodyId} className="text-[14px] leading-relaxed text-[color:var(--ink-soft)]">
+          {children}
+        </span>
       </div>
       {dismissible && (
         <button
           type="button"
           onClick={handleDismiss}
           aria-label={t('alert.button.dismiss')}
-          style={{
-            background: 'transparent',
-            border: 0,
-            color: 'inherit',
-            cursor: 'pointer',
-            fontSize: '1rem',
-            lineHeight: 1,
-          }}
+          className="shrink-0 text-[color:var(--meta)] hover:text-[color:var(--ink)] transition-colors text-base leading-none px-1 cursor-pointer"
         >
           ✕
         </button>

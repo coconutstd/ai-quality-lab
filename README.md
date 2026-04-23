@@ -42,7 +42,7 @@ AI 코딩 도구가 속도 비용을 ~0 으로 만들었다.
 
 ## 계층별 자동 방어 지도
 
-실험 12·13·14·15·17·18 이 함께 만드는 **다층 방어**:
+실험 12·13·14·15·17·18·19 가 함께 만드는 **다층 방어**:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -112,6 +112,25 @@ AI 코딩 도구가 속도 비용을 ~0 으로 만들었다.
                                      │ pass
                                      ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
+│ 턴 종료 시 자동 리뷰                                     ← 실험 19      │
+│   Stop hook        (.claude/hooks/auto-simplify.mjs)                    │
+│   ┌──────────────────────────────────────────────────────────────────┐  │
+│   │ Claude 턴 종료마다 발화. 이번 턴이 코드 파일을 건드렸고 변경분   │  │
+│   │ 지문에 대응하는 마커가 없으면 decision:"block" + reason 으로     │  │
+│   │ simplify 스킬 호출을 강제. 실험 18 Known Gap("서브에이전트       │  │
+│   │ 리뷰가 세션마다 잊힘") 해결 — 4번째 트리거 경로가 AI 재량에서    │  │
+│   │ hook 강제로 승격.                                                 │  │
+│   │                                                                   │  │
+│   │ Gate 설계:                                                        │  │
+│   │   · stop_hook_active / 비-git / 미커밋 없음 → passthrough        │  │
+│   │   · 변경분 size+mtime+content(≤256KB) 지문 → 마커로 dedup        │  │
+│   │   · prune-sentinel 로 일 1회만 TTL 청소 (턴당 O(n) 제거)         │  │
+│   │   · opt-out: LAB_SKIP_REVIEW=1                                   │  │
+│   └──────────────────────────────────────────────────────────────────┘  │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │ pass
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
 │ 다른 프로젝트로 이식                                      ← 실험 15      │
 │   starter/ 번들 + .claude/rules/config.mjs (프로젝트-로컬 값)           │
 │   ┌──────────────────────────────────────────────────────────────────┐  │
@@ -170,6 +189,8 @@ AI 코딩 도구가 속도 비용을 ~0 으로 만들었다.
 | "코드 리뷰 받을 사람이 없다" | CodeRabbit 자동 실행 — CI 전용 PR 게이트 | 11·14 |
 | 규칙이 여러 파일에 복제되어 drift | SSOT(.mjs) + generator(sync-rules) + check 모드 pr:gate | (리팩터) |
 | 시스템을 다른 프로젝트에 복제 불가 | starter/ 번들 + config 외부화 + 이식 시뮬레이션 | 15 |
+| 서브에이전트 리뷰가 세션마다 "잊힘" | Stop hook + diff 지문 마커로 simplify 스킬을 턴 종료 시 강제 | 19 |
+| 에디토리얼 아이덴티티 부재 (디자인 단조로움) | Fraunces + Plex Sans/Mono · 아이보리/잉크/버밀리언 팔레트 · `.page-container/.meta-line/.inline-error` 유틸 | 20 |
 
 ---
 
@@ -177,13 +198,13 @@ AI 코딩 도구가 속도 비용을 ~0 으로 만들었다.
 
 | 지표 | 값 |
 |---|---|
-| 단위 테스트 | **74** (baseline 0) |
-| Storybook 스토리 | **14** (3 컴포넌트) |
-| i18n 키 (ko/en 평행) | **43** |
-| 분석 이벤트 (PII 안전) | **16** |
+| 단위 테스트 | **83** (baseline 0) |
+| Storybook 스토리 | **15** (4 컴포넌트) |
+| i18n 키 (ko/en 평행) | **56** |
+| 분석 이벤트 (PII 안전) | **23** |
 | Hard 차단 규칙 | **5** (코드베이스 false positive 0건 검증) |
-| 자동 게이트 트리거 | **3** (on-demand / pre-push / CI) |
-| 실험 결과 문서 | **15** (`results/01~15.md`) |
+| 자동 트리거 경로 | **4** (on-demand / pre-push / CI / 턴 종료 Stop hook) |
+| 실험 결과 문서 | **20** (`results/01~20.md`) |
 | `pr:gate` 실행 시간 | **~5초** |
 
 ---
@@ -201,8 +222,9 @@ ai-quality-lab/
 ├── playwright.config.ts     # ← 실험 17: webServer + chromium
 ├── starter/                 # ← 실험 15: 다른 프로젝트로 이식 가능한 번들
 ├── .claude/
-│   ├── settings.json        # PreToolUse + SessionEnd hook 등록
-│   ├── hooks/               # guard-always-layer / audit-components / test-guard
+│   ├── settings.json        # PreToolUse + Stop + SessionEnd hook 등록
+│   ├── hooks/               # guard-always-layer / audit-components / test-guard / auto-simplify (실험 19)
+│   ├── cache/               # ← 실험 19: auto-simplify 마커 (gitignored)
 │   ├── rules/               # ← SSOT: always-layer.mjs + 프로젝트 config.mjs
 │   ├── scripts/             # sync-rules.mjs + review-local.mjs (실험 18)
 │   └── skills/              # new-component (컴포넌트 스캐폴드 Skill)
@@ -230,6 +252,10 @@ npm run pr:gate           # 위 6개 순차 실행 (pre-push / CI 공통)
 npm run e2e               # ← 실험 17: Playwright E2E (dev server 자동 기동)
 npm run review:local      # ← 실험 18: 변경분을 리뷰 프롬프트 패키지로 stdout 덤프
 npm run pr:review         # CodeRabbit 로컬 (과금, 현 브랜치)
+
+# 실험 19: Stop hook 은 턴 종료마다 자동 실행됨 (Claude Code 세션 내부).
+# 건너뛰려면 환경변수 설정 후 Claude Code 기동:
+LAB_SKIP_REVIEW=1 claude
 ```
 
 실험 재현: 각 `rules/0N-*.md` 를 컨텍스트로 AI에게 제시 → 적용 요청 → `results/0N-*.md` 체크리스트와 대조.
