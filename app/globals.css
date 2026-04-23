@@ -1,31 +1,365 @@
 @import "tailwindcss";
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Editorial Engineering Lab — design tokens
+   paper ivory · ink black · vermillion accent · hairline rules
+   ────────────────────────────────────────────────────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f4efe3;
+  --paper-2: #ece6d6;
+  --ink: #0b0b0b;
+  --ink-soft: #2b2724;
+  --meta: #6b6257;
+  --rule: rgba(11, 11, 11, 0.14);
+  --rule-strong: rgba(11, 11, 11, 0.32);
+  --vermillion: #d84b20;
+  --vermillion-ink: #a63310;
+  --moss: #3d6b3f;
+  --ochre: #b0812a;
+  --danger: #b0241a;
+  --overlay: rgba(11, 11, 11, 0.45);
+
+  --font-display: var(--font-fraunces), "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: var(--font-plex-sans), "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-meta: var(--meta);
+  --color-rule: var(--rule);
+  --color-vermillion: var(--vermillion);
+  --color-moss: var(--moss);
+  --color-ochre: var(--ochre);
+  --color-danger: var(--danger);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "ss02", "cv11", "tnum";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* fine paper grain via layered gradients */
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(11, 11, 11, 0.035) 0%, transparent 40%),
+    radial-gradient(circle at 88% 82%, rgba(216, 75, 32, 0.05) 0%, transparent 45%),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 31px,
+      rgba(11, 11, 11, 0.035) 31px,
+      rgba(11, 11, 11, 0.035) 32px
+    );
+  background-attachment: fixed;
 }
 
-/* 스크린리더 전용 — 시각적으로 숨기되 a11y tree에는 노출 */
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Layout primitives
+   ────────────────────────────────────────────────────────────────────────── */
+
+.page-container {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+@media (min-width: 768px) {
+  .page-container {
+    padding-inline: 2.5rem;
+  }
+}
+
+.meta-line {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--meta);
+}
+
+.meta-line-sm {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--meta);
+}
+
+.inline-error {
+  border-left: 2px solid var(--danger);
+  background: rgba(176, 36, 26, 0.05);
+  padding: 12px 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--danger);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Editorial primitives — reusable "lab notebook" classes
+   ────────────────────────────────────────────────────────────────────────── */
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--meta);
+}
+
+.eyebrow::before {
+  content: "[ ";
+  color: var(--vermillion);
+}
+.eyebrow::after {
+  content: " ]";
+  color: var(--vermillion);
+}
+
+.rule {
+  height: 1px;
+  background: var(--rule-strong);
+}
+
+.rule-soft {
+  height: 1px;
+  background: var(--rule);
+}
+
+/* tick-marked divider — a horizontal rule with small perpendicular ticks */
+.rule-tick {
+  position: relative;
+  height: 1px;
+  background: var(--rule-strong);
+}
+.rule-tick::before,
+.rule-tick::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  width: 1px;
+  height: 7px;
+  background: var(--rule-strong);
+}
+.rule-tick::before {
+  left: 0;
+}
+.rule-tick::after {
+  right: 0;
+}
+
+/* chip — small monospace tag */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid var(--ink);
+  padding: 3px 8px;
+  color: var(--ink);
+}
+
+.chip-vermillion {
+  border-color: var(--vermillion);
+  color: var(--vermillion);
+}
+
+/* display heading — Fraunces italic-forward */
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-optical-sizing: auto;
+  font-variation-settings: "opsz" 144, "SOFT" 60;
+  letter-spacing: -0.02em;
+  line-height: 0.96;
+}
+
+.display em {
+  font-style: italic;
+  font-variation-settings: "opsz" 144, "SOFT" 80;
+  color: var(--vermillion);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Buttons — ink primary · ghost secondary · vermillion danger
+   ────────────────────────────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 12px 20px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease, color 120ms ease;
+  user-select: none;
+}
+.btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 0 var(--ink);
+}
+.btn:active:not(:disabled) {
+  transform: translate(0, 0);
+  box-shadow: 0 0 0 0 var(--ink);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: 3px 3px 0 0 var(--ink);
+}
+
+.btn-danger {
+  background: var(--vermillion);
+  border-color: var(--vermillion);
+  color: var(--paper);
+}
+.btn-danger:hover:not(:disabled) {
+  box-shadow: 3px 3px 0 0 var(--vermillion-ink);
+}
+
+.btn-link {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 2px;
+  cursor: pointer;
+  background: transparent;
+  border-top: 0;
+  border-left: 0;
+  border-right: 0;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+.btn-link:hover {
+  color: var(--vermillion);
+  border-color: var(--vermillion);
+}
+
+.btn-link-danger {
+  color: var(--danger);
+  border-bottom-color: var(--danger);
+}
+.btn-link-danger:hover {
+  color: var(--vermillion-ink);
+  border-bottom-color: var(--vermillion-ink);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Form controls — hairline underline inputs
+   ────────────────────────────────────────────────────────────────────────── */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--meta);
+}
+
+.input,
+.textarea {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--ink);
+  padding: 10px 2px;
+  outline: none;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.input:focus,
+.textarea:focus {
+  border-bottom-color: var(--vermillion);
+  background: rgba(216, 75, 32, 0.04);
+}
+.input[aria-invalid="true"],
+.textarea[aria-invalid="true"] {
+  border-bottom-color: var(--danger);
+}
+.input:disabled,
+.textarea:disabled {
+  opacity: 0.55;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 140px;
+  border: 1px solid var(--ink);
+  padding: 12px 14px;
+}
+
+.input-display {
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1.1;
+}
+@media (min-width: 768px) {
+  .input-display {
+    font-size: 36px;
+  }
+}
+
+.error-text {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  color: var(--danger);
+  min-height: 1em;
+}
+.error-text:empty::before {
+  content: " ";
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Accessibility helper — visually hidden
+   ────────────────────────────────────────────────────────────────────────── */
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -36,4 +370,94 @@ body {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Motion
+   ────────────────────────────────────────────────────────────────────────── */
+
+@keyframes lab-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.lab-rise {
+  animation: lab-rise 520ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.lab-delay-1 { animation-delay: 80ms; }
+.lab-delay-2 { animation-delay: 160ms; }
+.lab-delay-3 { animation-delay: 240ms; }
+.lab-delay-4 { animation-delay: 320ms; }
+.lab-delay-5 { animation-delay: 400ms; }
+
+@keyframes lab-dialog-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes lab-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-rise, [class*="lab-delay-"] { animation: none !important; }
+}
+
+/* Rich text rendered via <SafeHtml> inside articles */
+.prose-lab h2 {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin: 1.6em 0 0.5em;
+}
+.prose-lab h3 {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  margin: 1.4em 0 0.4em;
+}
+.prose-lab p {
+  margin: 0 0 1.1em;
+  font-size: 17px;
+  line-height: 1.75;
+  color: var(--ink-soft);
+}
+.prose-lab a {
+  color: var(--vermillion);
+  border-bottom: 1px solid currentColor;
+}
+.prose-lab a:hover {
+  color: var(--vermillion-ink);
+}
+.prose-lab strong {
+  color: var(--ink);
+}
+.prose-lab code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--paper-2);
+  padding: 2px 6px;
+}
+.prose-lab blockquote {
+  border-left: 2px solid var(--vermillion);
+  padding: 0.2em 0 0.2em 1em;
+  margin: 1.4em 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+.prose-lab ul,
+.prose-lab ol {
+  margin: 0 0 1.1em;
+  padding-left: 1.4em;
+}
+.prose-lab li {
+  margin-bottom: 0.3em;
+  color: var(--ink-soft);
 }

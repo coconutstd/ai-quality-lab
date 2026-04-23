@@ -11,6 +11,16 @@
         ]
       }
     ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/auto-simplify.mjs"
+          }
+        ]
+      }
+    ],
     "SessionEnd": [
       {
         "hooks": [
