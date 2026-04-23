@@ -21,8 +21,7 @@
     "pr:review": "coderabbit review --agent -t all",
     "review:local": "node .claude/scripts/review-local.mjs",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "prepare": "husky"
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -51,7 +50,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "happy-dom": "^20.9.0",
-    "husky": "^9.1.7",
     "storybook": "^9.1.20",
     "tailwindcss": "^4",
     "typescript": "^5",
