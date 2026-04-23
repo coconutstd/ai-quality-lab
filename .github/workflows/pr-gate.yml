@@ -41,11 +41,35 @@ jobs:
           path: playwright-report/
           retention-days: 14
 
-  review:
-    # CodeRabbit AI 사전 리뷰 — PR에만 실행. push(main)에선 스킵.
+  review-precheck:
+    # secrets 컨텍스트는 job-level `if:` 에서 직접 참조할 수 없으므로, 키 존재 여부를
+    # precheck job 의 output 으로 노출한다. 이렇게 해야 review job 이 "실행되지 않고
+    # skipped" 로 표시돼 misleading green(= key 없는데 pass) 을 제거할 수 있다.
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: gate
+    outputs:
+      coderabbit_enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - id: check
+        env:
+          KEY: ${{ secrets.CODERABBIT_API_KEY }}
+        run: |
+          if [ -n "$KEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "CodeRabbit API key 감지됨 — review job 실행"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "CodeRabbit API key 없음 — review job 스킵 (misleading green 방지)"
+          fi
+
+  review:
+    # CodeRabbit AI 사전 리뷰 — PR 이고 키가 설정된 경우에만 실행.
+    # 키가 없으면 job 자체가 "skipped" 로 마킹되어 PR UI 에서 회색 표시.
+    if: |
+      github.event_name == 'pull_request' &&
+      needs.review-precheck.outputs.coderabbit_enabled == 'true'
+    runs-on: ubuntu-latest
+    needs: [gate, review-precheck]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -58,9 +82,4 @@ jobs:
       - name: CodeRabbit review
         env:
           CODERABBIT_API_KEY: ${{ secrets.CODERABBIT_API_KEY }}
-        run: |
-          if [ -z "$CODERABBIT_API_KEY" ]; then
-            echo "CODERABBIT_API_KEY 시크릿 미설정 — 리뷰 스텝 스킵"
-            exit 0
-          fi
-          npx coderabbit review --agent -t all
+        run: npx coderabbit review --agent -t all
