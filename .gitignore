@@ -47,3 +47,11 @@ test-results/
 
 # Claude Code hook cache (auto-simplify markers)
 .claude/cache/
+
+# Playwright MCP auto-generated logs/snapshots
+.playwright-mcp/
+
+# Screenshots (attach to PR description instead)
+*.png
+*.jpg
+*.jpeg
