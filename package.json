@@ -19,6 +19,7 @@
     "pr:gate": "npm run lint && npm run typecheck && npm run test:run && npm run audit:components && npm run check:rules && npm run test:guard",
     "ci:e2e": "playwright test",
     "pr:review": "coderabbit review --agent -t all",
+    "review:local": "node .claude/scripts/review-local.mjs",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
