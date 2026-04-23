@@ -41,6 +41,61 @@ jobs:
           path: playwright-report/
           retention-days: 14
 
+  bundle-gate:
+    # 실험 22 — 빌드 타임 번들 게이트. gate job 과 병렬로 실행.
+    # gzip 기준 청크 크기가 BUNDLE_LIMITS 초과 시 exit 1 로 PR 를 블록한다.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Bundle gate
+        run: npm run bundle:check
+      - name: Upload analyze artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-analyze
+          path: .next/analyze/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  lighthouse:
+    # 실험 22 — 런타임 Lighthouse 리포팅 (soft, 항상 exit 0).
+    # push:main 시에만 실행해 PR 마다 2분+ 빌드가 추가되는 것을 방지한다.
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: bundle-gate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Setup Chrome (Lighthouse 용)
+        uses: browser-actions/setup-chrome@v1
+        id: setup-chrome
+      - name: Run Lighthouse
+        env:
+          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+        run: npm run perf:report
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: lighthouse-reports/
+          retention-days: 14
+          if-no-files-found: warn
+
   review-precheck:
     # secrets 컨텍스트는 job-level `if:` 에서 직접 참조할 수 없으므로, 키 존재 여부를
     # precheck job 의 output 으로 노출한다. 이렇게 해야 review job 이 "실행되지 않고
